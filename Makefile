@@ -1,4 +1,4 @@
-.PHONY: help up down restart logs ps clean dev-up dev-down build force-recreate n8n-export n8n-import
+.PHONY: help up down restart logs ps clean clean-docker dev-up dev-down build force-recreate n8n-export n8n-import
 
 # Define docker-compose commands
 DC = docker compose
@@ -58,6 +58,7 @@ dev-up:
 	@echo ""
 	@echo "   🗄️   PostgreSQL: localhost:${POSTGRES_PORT} (User: ${POSTGRES_USER}, DB: ${POSTGRES_DB})"
 	@echo "   📟️  N8n: http://localhost:${N8N_PORT}/ or http://${N8N_HOST}:${N8N_PORT}/"
+	@echo "   📟️  pgAdmin: http://localhost:5050/ or http://${N8N_HOST}:5050/"
 	@echo ""
 	@echo "📝 Available Routes:"
 	@echo "   N8n:"
@@ -86,10 +87,11 @@ force-recreate:
 	@echo "1️⃣  Stopping all containers..."
 	@$(DC) down --remove-orphans || true
 	@echo "2️⃣  Removing all project volumes..."
-	@docker volume rm -f "$${PROJECT_NAME}_postgres_data" "$${PROJECT_NAME}_n8n_data" 2>/dev/null || true
+	@docker volume rm -f "$${PROJECT_NAME}_postgres_data" "$${PROJECT_NAME}_n8n_data" "$${PROJECT_NAME}_pgadmin_data" 2>/dev/null || true
 	@echo "3️⃣  Removing all project networks..."
 	@docker network rm "$${PROJECT_NAME}_network" 2>/dev/null || true
 	@echo "4️⃣  Removing all project images..."
+	@docker images | grep "$${PROJECT_NAME}" | awk '{print $$3}' | xargs -r docker rmi 2>/dev/null || true
 	@echo "5️⃣  Cleaning local directories..."
 	@rm -rf core/n8n/postgres/data/* core/n8n/data/* .pytest_cache **/__pycache__ **/*.pyc
 	@echo "6️⃣  Recreating necessary directories..."
@@ -98,9 +100,9 @@ force-recreate:
 	@echo "7️⃣  Building images..."
 	@$(MAKE) build
 	@echo "8️⃣  Starting services..."
-	@$(MAKE) dev-up
+	@$(DC) up -d --force-recreate
 	@echo "${GREEN}✨ Force recreate complete!${NC}"
-	@$(MAKE) logs
+	@$(DC) logs -f
 
 # ------------------------------------------------------------------
 # 🐳 Container Management
@@ -131,8 +133,8 @@ n8n-export:
 	@echo "🔄 Exporting n8n workflows..."
 	@mkdir -p ./core/n8n/files/workflows
 	@$(DC) exec n8n mkdir -p /home/node/files/workflows
-	@$(DC) exec n8n n8n export:workflow --all --output=/home/node/files/workflows/ --separate
-	@echo "✅ Workflows exported to ./core/n8n/files/workflows/"
+	@$(DC) exec n8n n8n export:workflow --all --output=/home/node/files/workflows/ --separate || echo "ℹ️ No workflows to export or n8n not ready yet."
+	@echo "✅ Completed workflows export process."
 
 n8n-import:
 	@echo "🔄 Importing n8n workflows..."

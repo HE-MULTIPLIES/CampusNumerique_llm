@@ -3,6 +3,8 @@ volumes:
     name: ${PROJECT_NAME}_postgres_data
   n8n_data:
     name: ${PROJECT_NAME}_n8n_data
+  pgadmin_data:
+    name: ${PROJECT_NAME}_pgadmin_data
 
 networks:
   app_network:
@@ -51,8 +53,10 @@ services:
 
   # PostgreSQL Database
   postgres:
-    image: postgres:16
+    # image: postgres:16 # Use this if you want to use the default PostgreSQL image
+    image: pgvector/pgvector:0.8.0-pg17 # Use this if you want to use the pgvector image
     container_name: postgres-${PROJECT_NAME}
+    restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -66,16 +70,30 @@ services:
     # - Right side (:${POSTGRES_PORT}): Port inside the Docker container
     # This means: Connect to localhost:${POSTGRES_PORT} on your machine to reach PostgreSQL inside Docker
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - "${POSTGRES_PORT}:5432" # Expose PostgreSQL port for local access
     networks:
       - app_network
-    command: -p ${POSTGRES_PORT}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -p ${POSTGRES_PORT} -d ${POSTGRES_DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -p 5432 -d ${POSTGRES_DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  # pgAdmin web interface for PostgreSQL management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin-${PROJECT_NAME}
     restart: always
-
-
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${N8N_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${N8N_PASSWORD}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - app_network
+    depends_on:
+      postgres:
+        condition: service_healthy
