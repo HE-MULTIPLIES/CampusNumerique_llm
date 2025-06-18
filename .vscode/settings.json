@@ -1,0 +1,40 @@
+{
+  // Global setting to format files when saving
+  "editor.formatOnSave": true,
+
+  // Global settings for actions to perform on save
+  "editor.codeActionsOnSave": {
+    // Fix all auto-fixable problems
+    "source.fixAll": "always",
+    // Organize imports (sort, remove unused)
+    "source.organizeImports": "always"
+  },
+
+  // Remove extra spaces at the end of lines
+  "files.trimTrailingWhitespace": true,
+
+  // Add a newline at the end of files
+  "files.insertFinalNewline": true,
+
+  // Show a vertical line at column 100 for visual guidance
+  "editor.rulers": [120],
+
+  // Python-specific settings
+  "[python]": {
+    // Use Black as the default formatter
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    // Format Python files on save
+    "editor.formatOnSave": true,
+    // Python-specific actions on save
+    "editor.codeActionsOnSave": {
+      // Run Ruff auto-fixes (unused imports, style issues, etc.)
+      "source.fixAll.ruff": "always",
+      // Let Ruff handle import organization
+      "source.organizeImports.ruff": "always"
+    }
+  },
+
+  // Ruff-specific settings
+  // Enable auto-fixing capabilities
+  "ruff.fixAll": true
+}
