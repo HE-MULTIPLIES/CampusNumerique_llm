@@ -32,11 +32,11 @@ services:
       - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
       # Database Configuration
       - DB_TYPE=${N8N_DB_TYPE}
-      - DB_POSTGRESDB_HOST=${POSTGRES_HOST}
-      - DB_POSTGRESDB_PORT=${POSTGRES_PORT}
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB_NAME}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_HOST=${POSTGRES_HOST} # Name of the docker service: postgres
+      - DB_POSTGRESDB_PORT=${POSTGRES_PORT} # Default port for PostgreSQL. Check in postgres service in docker-compose.yml
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB_NAME} # PostgreSQL database name
+      - DB_POSTGRESDB_USER=${POSTGRES_USER} # PostgreSQL user
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD} # PostgreSQL password
       # File Access & Security Settings
       - N8N_FILES_ALLOWED_PATH=/home/node/files
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-secret-encryption-key}
@@ -57,7 +57,6 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB_NAME}
-      - POSTGRES_HOST=${POSTGRES_HOST}
       - PGPORT=${POSTGRES_PORT}
     volumes:
       - ./core/n8n/postgres/data:/var/lib/postgresql/data
@@ -72,7 +71,7 @@ services:
       - app_network
     command: -p ${POSTGRES_PORT}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -p ${POSTGRES_PORT}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -p ${POSTGRES_PORT} -d ${POSTGRES_DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
