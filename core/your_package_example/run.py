@@ -1,1 +1,0 @@
-"""Package structure example: dashboard"""

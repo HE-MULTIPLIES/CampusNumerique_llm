@@ -25,7 +25,7 @@ services:
     volumes:
       - ./core/n8n/data:/home/node/.n8n
       - ./core/n8n/files:/home/node/files
-      - ./assets:/home/node/assets
+      - ./assets/examples:/home/node/examples
     environment:
       # Server Configuration
       - N8N_HOST=${N8N_HOST}
@@ -44,6 +44,8 @@ services:
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-secret-encryption-key}
       # Additional Settings
       - N8N_RUNNERS_ENABLED=true
+      # Variables
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     networks:
       - app_network
     depends_on:
