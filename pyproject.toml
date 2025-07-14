@@ -1,0 +1,93 @@
+# ============================================================================
+# Poetry Package Configuration
+# ============================================================================
+[tool.poetry]
+name = "pnl-maker"
+version = "0.1.0"
+description = "Campus numerique - PNL maker module for low code AI discovery"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{ include = "core" }]
+
+# Main dependencies required for the application to run
+[tool.poetry.dependencies]
+python = "^3.11"           # Requires Python 3.11 or higher within the 3.11.x series
+python-dotenv = "^1.0.0"   # For loading environment variables from .env files
+psycopg2-binary = "^2.9.9" # PostgreSQL adapter for Python
+# Development dependencies (not installed in production)
+colorama = "^0.4.6"
+requests = "^2.32.4"
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"  # Testing framework
+black = "^23.11.0" # Code formatter
+isort = "^5.12.0"  # Import sorter
+ruff = "^0.1.6"    # Fast Python linter
+
+# Build system configuration
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# ============================================================================
+# Code Formatting and Linting Configuration
+# ============================================================================
+
+# Black formatter configuration
+[tool.black]
+line-length = 120          # Maximum line length
+target-version = ['py311'] # Python version to target
+include = '\.pyi?$'        # Files to include (Python files)
+
+# Import sorting configuration (isort)
+[tool.isort]
+profile = "black"                     # Use Black-compatible settings
+multi_line_output = 3                 # Import grouping style
+include_trailing_comma = true         # Add trailing comma in multi-line imports
+force_grid_wrap = 0                   # Don't wrap long from imports
+use_parentheses = true                # Use parentheses for imports
+line_length = 120                     # Match Black's line length
+ensure_newline_before_comments = true # Keep new lines before comments
+# Import sections ordering
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+
+# Ruff linter configuration (combines functionality of multiple linters)
+[tool.ruff]
+# Enable specific rule sets
+select = [
+    "E",   # pycodestyle errors (style errors)
+    "W",   # pycodestyle warnings (style warnings)
+    "F",   # pyflakes (logical errors)
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear (bug risk reduction)
+    "C4",  # flake8-comprehensions (better list/dict/set comprehensions)
+    "UP",  # pyupgrade (upgrade syntax to newer python)
+    "N",   # pep8-naming (naming conventions)
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "F403", # 'from module import *' used
+    "F405", # Name may be undefined, or defined from star imports
+    "E722", # Do not use bare except
+]
+line-length = 120 # Match Black's line length
+target-version = "py311" # Python version to target
+
+# Per-file rule exceptions
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"] # Allow unused imports in __init__.py files
+
+# Auto-fix configuration
+[tool.ruff.lint]
+fixable = ["ALL"] # Allow fixing all fixable violations
+unfixable = []    # No rules are excluded from auto-fixing
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"] # Directory containing tests
+python_files = ["test_*.py"] # Test file naming pattern
+addopts = "-v -ra --strict-markers" # Additional pytest options
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+] # Warnings to ignore

@@ -1,0 +1,101 @@
+volumes:
+  postgres_data:
+    name: ${PROJECT_NAME}_postgres_data
+  n8n_data:
+    name: ${PROJECT_NAME}_n8n_data
+  pgadmin_data:
+    name: ${PROJECT_NAME}_pgadmin_data
+
+networks:
+  app_network:
+    name: ${PROJECT_NAME}_network
+
+services:
+
+  # n8n Workflow Automation
+  n8n:
+    image: n8nio/n8n:1.99.0
+    container_name: n8n-${PROJECT_NAME}
+    # Port Mapping for N8N:
+    # - Left side (${N8N_PORT}): Port on your host machine (outside Docker)
+    # - Right side (:${N8N_PORT}): Port inside the Docker container
+    # This means: Connect to localhost:${N8N_PORT} on your machine to reach N8N inside Docker
+    ports:
+      - "${N8N_PORT}:${N8N_PORT}"
+    volumes:
+      - ./core/n8n/data:/home/node/.n8n
+      - ./core/n8n/files:/home/node/files
+      - ./assets/examples:/home/node/examples
+    environment:
+      # Server Configuration
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=${N8N_PROTOCOL}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      # Database Configuration
+      - DB_TYPE=${N8N_DB_TYPE}
+      - DB_POSTGRESDB_HOST=${POSTGRES_HOST} # Name of the docker service: postgres
+      - DB_POSTGRESDB_PORT=${POSTGRES_PORT} # Default port for PostgreSQL. Check in postgres service in docker-compose.yml
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB_NAME} # PostgreSQL database name
+      - DB_POSTGRESDB_USER=${POSTGRES_USER} # PostgreSQL user
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD} # PostgreSQL password
+      # File Access & Security Settings
+      - N8N_FILES_ALLOWED_PATH=/home/node/files
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-secret-encryption-key}
+      # Additional Settings
+      - N8N_RUNNERS_ENABLED=true
+      # Variables
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - app_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+
+  # PostgreSQL Database
+  postgres:
+    # image: postgres:16 # Use this if you want to use the default PostgreSQL image
+    image: pgvector/pgvector:0.8.0-pg17 # Use this if you want to use the pgvector image
+    container_name: postgres-${PROJECT_NAME}
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB_NAME}
+      - PGPORT=${POSTGRES_PORT}
+    volumes:
+      - ./core/n8n/postgres/data:/var/lib/postgresql/data
+      - ./core/n8n/postgres/init:/docker-entrypoint-initdb.d
+    # Port Mapping for PostgreSQL:
+    # - Left side (${POSTGRES_PORT}): Port on your host machine (outside Docker)
+    # - Right side (:${POSTGRES_PORT}): Port inside the Docker container
+    # This means: Connect to localhost:${POSTGRES_PORT} on your machine to reach PostgreSQL inside Docker
+    ports:
+      - "${POSTGRES_PORT}:5432" # Expose PostgreSQL port for local access
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -p 5432 -d ${POSTGRES_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # pgAdmin web interface for PostgreSQL management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin-${PROJECT_NAME}
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${N8N_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${N8N_PASSWORD}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - app_network
+    depends_on:
+      postgres:
+        condition: service_healthy
