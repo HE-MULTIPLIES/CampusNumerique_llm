@@ -5,8 +5,6 @@
 - Docker
 - Docker Compose
 - Git
-- Python 3.11
-- Poetry
 - Make
 
 ## Installation
@@ -18,51 +16,7 @@ git clone https://github.com/HE-MULTIPLIES/pnl-maker.git
 cd pnl-maker
 ```
 
-2. Installation of poetry on the machine
-   1. MacOS
-
-   ```bash
-   brew install poetry
-   ```
-
-   2. Linux
-
-   ```bash
-   curl -sSL https://install.python-poetry.org | python3 -
-   ```
-
-   open your bashrc and add this line
-
-   ```bash
-   export PATH="${HOME}/.local/bin:$PATH"
-   ```
-
-   then reload your bashrc
-
-   ```bash
-   source ~/.bashrc
-   ```
-
-   verify the installation
-
-   ```bash
-   poetry --version
-   ```
-
-3. Installation of python 3.11 for poetry
-Make sur you have python 3.11 installed on your machine and then run
-
-```bash
-poetry env use 3.11
-```
-
-4. Installation of the dependencies
-
-```bash
-poetry install
-```
-
-5. Installation of Make package
+2. Installation of Make package
 
 ```bash
 brew install make
