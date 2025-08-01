@@ -53,28 +53,19 @@ or check
 
 ### 6. Create Manually in your n8n interface the following folder architecture (If you didnt activate your account you cant create folder, that will be a bit messy)
 
-📁 Exercices
-├── 📁 1. Webhook & Requests
-
-├── 📁 2. Data Manipulation
-
-├── 📁 3. Workflow & SubWorkflow
-
-├── 📁 4. Credentials & Database
-
-└── 📁 5. Agent IA
-
-📁 Correction
-
-├── 📁 1. Webhook & Requests
-
-├── 📁 2. Data Manipulation
-
-├── 📁 3. Workflow & SubWorkflow
-
-├── 📁 4. Credentials & Database
-
-└── 📁 5. Agent IA
+📁 Exercices<br>
+├── 📁 1. Webhook & Requests<br>
+├── 📁 2. Data Manipulation<br>
+├── 📁 3. Workflow & SubWorkflow<br>
+├── 📁 4. Credentials & Database<br>
+└── 📁 5. Agent IA<br>
+|
+📁 Correction<br>
+├── 📁 1. Webhook & Requests<br>
+├── 📁 2. Data Manipulation<br>
+├── 📁 3. Workflow & SubWorkflow<br>
+├── 📁 4. Credentials & Database<br>
+└── 📁 5. Agent IA<br>
 
 ### 7. Now that the folders are created, you can import the workflows using the make commands
 
