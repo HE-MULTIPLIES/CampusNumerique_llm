@@ -55,16 +55,25 @@ or check
 
 📁 Exercices
 ├── 📁 1. Webhook & Requests
+
 ├── 📁 2. Data Manipulation
+
 ├── 📁 3. Workflow & SubWorkflow
+
 ├── 📁 4. Credentials & Database
+
 └── 📁 5. Agent IA
 
 📁 Correction
+
 ├── 📁 1. Webhook & Requests
+
 ├── 📁 2. Data Manipulation
+
 ├── 📁 3. Workflow & SubWorkflow
+
 ├── 📁 4. Credentials & Database
+
 └── 📁 5. Agent IA
 
 ### 7. Now that the folders are created, you can import the workflows using the make commands
