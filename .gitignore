@@ -13,6 +13,8 @@ core/n8n/data
 settings/config.ini
 # This file is generated running the make_ini.py script
 
+workflows_save_1
+workflows_save_2
 
 # General
 .DS_Store

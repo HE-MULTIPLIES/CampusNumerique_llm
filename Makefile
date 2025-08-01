@@ -42,8 +42,13 @@ help:
 	@echo "  ${YELLOW}make clean${NC}          - Clean all data"
 	@echo ""
 	@echo "N8n Management:"
-	@echo "  ${YELLOW}make n8n-export${NC}     - Export n8n workflows"
-	@echo "  ${YELLOW}make n8n-import${NC}     - Import n8n workflows"
+	@echo "  ${YELLOW}make n8n-export${NC}              - Export n8n workflows"
+	@echo "  ${YELLOW}make n8n-import${NC}              - Import n8n workflows"
+	@echo "  ${YELLOW}make n8n-export-sorted${NC}       - Export workflows sorted by tags (corrections/exercices)"
+	@echo "  ${YELLOW}make n8n-import-corrections${NC}  - Import corrections workflows only"
+	@echo "  ${YELLOW}make n8n-import-exercices${NC}    - Import exercices workflows only"
+	@echo "  ${YELLOW}make n8n-create-folders${NC}      - Create n8n folder architecture via API"
+	@echo "  ${YELLOW}make n8n-clear-all-workflows${NC} - Clear all workflows from n8n (with confirmation)"
 	@echo "------------------------------------------"
 
 # ------------------------------------------------------------------
@@ -129,23 +134,81 @@ ps:
 # ------------------------------------------------------------------
 # 🔄 N8n Workflow Management
 # ------------------------------------------------------------------
-n8n-export:
-	@echo "🔄 Exporting n8n workflows..."
-	@mkdir -p ./core/n8n/files/workflows
+
+# Export workflows sorted by tags (correction/exercice)
+n8n-export-sorted:
+	@echo "📂 Exporting n8n workflows sorted by tags..."
+	@mkdir -p ./core/n8n/files/workflows/{corrections,exercices}
 	@$(DC) exec n8n mkdir -p /home/node/files/workflows
 	@$(DC) exec n8n n8n export:workflow --all --output=/home/node/files/workflows/ --separate || echo "ℹ️ No workflows to export or n8n not ready yet."
-	@echo "✅ Completed workflows export process."
+	@echo "🏷️ Sorting workflows by tags..."
+	@for file in ./core/n8n/files/workflows/*.json; do \
+		if [ -f "$$file" ]; then \
+			filename=$$(basename "$$file"); \
+			if grep -q '"name":[[:space:]]*"correction"' "$$file"; then \
+				echo "🔧 $$filename → workflows/corrections/"; \
+				mv "$$file" "./core/n8n/files/workflows/corrections/$$filename"; \
+			elif grep -q '"name":[[:space:]]*"exercice"' "$$file"; then \
+				echo "📚 $$filename → workflows/exercices/"; \
+				mv "$$file" "./core/n8n/files/workflows/exercices/$$filename"; \
+			else \
+				echo "⚠️  $$filename → workflows/ (pas de tag correction/exercice)"; \
+			fi; \
+		fi; \
+	done
+	@echo "✅ Export et tri par tags terminé !"
 
-n8n-import:
-	@echo "🔄 Importing n8n workflows..."
-	@if [ -d "./core/n8n/files/workflows" ] && [ "$$(ls -A ./core/n8n/files/workflows/*.json 2>/dev/null)" ]; then \
-		echo "📁 Found workflow files in ./core/n8n/files/workflows/"; \
+# Import corrections only
+n8n-import-corrections:
+	@echo "🔧 Import des corrections uniquement..."
+	@if [ -d "./core/n8n/files/workflows/corrections" ] && [ "$$(ls -A ./core/n8n/files/workflows/corrections/*.json 2>/dev/null)" ]; then \
+		echo "📁 Préparation des corrections pour import..."; \
+		mkdir -p ./core/n8n/files/workflows; \
+		rm -f ./core/n8n/files/workflows/*.json; \
+		cp ./core/n8n/files/workflows/corrections/*.json ./core/n8n/files/workflows/; \
 		$(DC) exec n8n mkdir -p /home/node/files/workflows; \
-		echo "🔄 Importing workflows..."; \
+		echo "🔄 Import des corrections..."; \
 		$(DC) exec n8n n8n import:workflow --separate --input=/home/node/files/workflows/; \
+		echo "🗂️ Recréation de la structure corrections/"; \
+		mkdir -p ./core/n8n/files/workflows/corrections; \
+		cp ./core/n8n/files/workflows/*.json ./core/n8n/files/workflows/corrections/ 2>/dev/null || true; \
+		echo "✅ Import corrections terminé !"; \
 	else \
-		echo "❌ No workflow files found in ./core/n8n/files/workflows/"; \
+		echo "❌ Aucun fichier de correction trouvé dans ./core/n8n/files/workflows/corrections/"; \
 	fi
+
+# Import exercices only
+n8n-import-exercices:
+	@echo "📚 Import des exercices uniquement..."
+	@if [ -d "./core/n8n/files/workflows/exercices" ] && [ "$$(ls -A ./core/n8n/files/workflows/exercices/*.json 2>/dev/null)" ]; then \
+		echo "📁 Préparation des exercices pour import..."; \
+		mkdir -p ./core/n8n/files/workflows; \
+		rm -f ./core/n8n/files/workflows/*.json; \
+		cp ./core/n8n/files/workflows/exercices/*.json ./core/n8n/files/workflows/; \
+		$(DC) exec n8n mkdir -p /home/node/files/workflows; \
+		echo "🔄 Import des exercices..."; \
+		$(DC) exec n8n n8n import:workflow --separate --input=/home/node/files/workflows/; \
+		echo "🗂️ Recréation de la structure exercices/"; \
+		mkdir -p ./core/n8n/files/workflows/exercices; \
+		cp ./core/n8n/files/workflows/*.json ./core/n8n/files/workflows/exercices/ 2>/dev/null || true; \
+		echo "✅ Import exercices terminé !"; \
+	else \
+		echo "❌ Aucun fichier d'exercice trouvé dans ./core/n8n/files/workflows/exercices/"; \
+	fi
+
+# Clear all n8n workflows
+n8n-clear-all-workflows:
+	@echo "🧹 Suppression de tous les workflows n8n..."
+	@echo "⚠️  ATTENTION: Cette action va supprimer TOUS les workflows de n8n!"
+	@read -p "📝 Tapez 'CONFIRM' pour continuer: " confirmation && [ "$$confirmation" = "CONFIRM" ] || (echo "❌ Opération annulée" && exit 1)
+	@echo "📋 Suppression des workflows en cours..."
+	@$(DC) exec postgres psql -U ${POSTGRES_USER} -d ${POSTGRES_DB_NAME} -c "DELETE FROM workflow_entity;"
+	@echo "📋 Nettoyage des tags (si nécessaire)..."
+	@$(DC) exec postgres psql -U ${POSTGRES_USER} -d ${POSTGRES_DB_NAME} -c "DELETE FROM tag_entity WHERE id NOT IN (SELECT DISTINCT t.\"tagId\" FROM tag_entity t);" 2>/dev/null || echo "   ℹ️  Nettoyage des tags ignoré (version n8n différente)"
+	@echo "✅ Tous les workflows ont été supprimés !"
+	@echo "💡 Vous pouvez maintenant importer vos workflows triés avec:"
+	@echo "   - make n8n-import-corrections"
+	@echo "   - make n8n-import-exercices"
 
 # ------------------------------------------------------------------
 # 🧹 Cleanup

@@ -1,0 +1,33 @@
+[
+    {
+        "portfolio": [
+            {
+                "ticker": "BTC",
+                "position": "short",
+                "quantity": 100,
+                "entry_date": "2025-01-01",
+                "entry_price": 93354.22,
+                "order_type": "open",
+                "pnl": 0
+            },
+            {
+                "ticker": "UUP",
+                "position": "short",
+                "quantity": 20,
+                "entry_date": "2025-01-01",
+                "entry_price": 126.56,
+                "order_type": "open",
+                "pnl": 0
+            },
+            {
+                "ticker": "AGG",
+                "position": "short",
+                "quantity": 100,
+                "entry_date": "2025-01-09",
+                "entry_price": 158.08,
+                "order_type": "open",
+                "pnl": 0
+            }
+        ]
+    }
+]
